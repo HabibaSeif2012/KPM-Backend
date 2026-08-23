@@ -1,0 +1,6 @@
+@KPM_Backend_HostAddress = http://localhost:5195
+
+GET {{KPM_Backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

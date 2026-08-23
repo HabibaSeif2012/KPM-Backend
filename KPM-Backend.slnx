@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Application/KPM.Application.csproj" />
+  <Project Path="Domain/KPM.Domain.csproj" />
+  <Project Path="Infrastructure/KPM.Infrastructure.csproj" />
+  <Project Path="KPM-Backend/KPM-Backend.csproj" />
+</Solution>
