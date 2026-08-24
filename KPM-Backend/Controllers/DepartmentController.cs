@@ -1,9 +1,11 @@
+using KPM.Application.DTOs.Department;
+using KPM.Application.Features.Department;
+using KPM.Domain;
+using KPM.Infrastructure;
+using Mapster;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Mapster;
-using KPM.Infrastructure;
-using KPM.Domain;
-using KPM.Application.DTOs.Department;
 
 namespace KPM_Backend.Controllers
 {
@@ -11,44 +13,49 @@ namespace KPM_Backend.Controllers
   [Route("api/[controller]")]
   public class DepartmentController : ControllerBase
   {
-    private readonly ApplicationDbContext _context;
-
-    public DepartmentController(ApplicationDbContext context)
+    private readonly IDepartmentService _departmentService;
+    public DepartmentController(IDepartmentService departmentService)
     {
-      _context = context;
+      _departmentService = departmentService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DepartmentDTO>>> GetAll()
+    public async Task<ActionResult<List<DepartmentDTO>>> GetAll()
     {
-      var departments = await _context.Departments.ToListAsync();
-      var dtos = departments.Adapt<List<DepartmentDTO>>();
-      return Ok(dtos);
+      var departments = await _departmentService.GetAllAsync();
+      return Ok(departments);
     }
-
     [HttpGet("{id}")]
-    public async Task<ActionResult<DepartmentDTO>> GetById(Guid id)
+    public async Task<ActionResult<DepartmentDTO>> GetById(Guid Id)
     {
-      var department = await _context.Departments.FindAsync(id);
+      var department = await _departmentService.GetByIdAsync(Id);
       if (department == null) return NotFound();
+      return Ok(department);
 
-      var dto = department.Adapt<DepartmentDTO>();
-      return Ok(dto);
     }
 
     [HttpPost]
     public async Task<ActionResult<DepartmentDTO>> Create(CreateDepartmentDTO createDto)
     {
-      var department = createDto.Adapt<Department>();
-      department.Id = Guid.NewGuid();
-      department.CreatedDate = DateTime.Now;
-      department.ModifiedDate = DateTime.Now;
+      var result = await _departmentService.CreateAsync(createDto);
+      return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
 
-      _context.Departments.Add(department);
-      await _context.SaveChangesAsync();
+    }
 
-      var resultDto = department.Adapt<DepartmentDTO>();
-      return CreatedAtAction(nameof(GetById), new { id = department.Id }, resultDto);
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<DepartmentDTO>> Patch(Guid id, UpdateDepartmentDTO updateDto)
+    {
+      var result = await _departmentService.PatchAsync(id, updateDto);
+      if (result == null) return NotFound();
+      return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+      var success = await _departmentService.DeleteAsync(id);
+      if (!success) return NotFound();
+      return NoContent();
     }
   }
 }

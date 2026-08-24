@@ -1,4 +1,5 @@
 using KPM.Application;
+using KPM.Application.Features.Auth;
 using KPM.Infrastructure;
 using Mapster;
 using MapsterMapper;
@@ -14,8 +15,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddMapster();
 //mapster-reading the application
 builder.Services.AddApplication();
-
+builder.Services.AddAuthApplication(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
+
+
 
 var app = builder.Build();
 
@@ -27,6 +30,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();   
 
 app.UseAuthorization();
 

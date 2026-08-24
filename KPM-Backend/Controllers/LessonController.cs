@@ -1,51 +1,40 @@
-using KPM.Application.DTOs.Lesson;
-using KPM.Domain;
-using KPM.Infrastructure;
-using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using KPM.Application.Features.Lesson;
+using KPM.Application.DTOs.Lesson;
 
 namespace KPM_Backend.Controllers
 {
   [ApiController]
   [Route("api/[controller]")]
-  public class LessonController:ControllerBase
+  public class LessonController : ControllerBase
   {
-    private readonly ApplicationDbContext  _context;
-    public LessonController( ApplicationDbContext context)
+    private readonly ILessonService _lessonService;
+
+    public LessonController(ILessonService lessonService)
     {
-      _context = context;
+      _lessonService = lessonService;
     }
+
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<LessonDto>>>GetAll()
+    public async Task<ActionResult<List<LessonDto>>> GetAll()
     {
-      var lessons = await _context.Lessons.ToListAsync();
-      var dtos = lessons.Adapt<List<LessonDto>>();
-      return Ok(dtos);
-       
+      var lessons = await _lessonService.GetAllAsync();
+      return Ok(lessons);
     }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<LessonDto>> GetById(Guid id)
     {
-      var lesson = await _context.Lessons.FindAsync(id);
+      var lesson = await _lessonService.GetByIdAsync(id);
       if (lesson == null) return NotFound();
-
-      var dto = lesson.Adapt<LessonDto>();
-      return Ok(dto);
+      return Ok(lesson);
     }
+
     [HttpPost]
     public async Task<ActionResult<LessonDto>> Create(CreateLessonDTO createDto)
     {
-      var lesson = createDto.Adapt<Lesson>();
-      lesson.Id = Guid.NewGuid();
-      lesson.CreatedDate = DateTime.Now;
-      lesson.ModifiedDate = DateTime.Now;
-
-      _context.Lessons.Add(lesson);
-      await _context.SaveChangesAsync();
-
-      var resultDto = lesson.Adapt<LessonDto>();
-      return CreatedAtAction(nameof(GetById), new { id = lesson.Id }, resultDto);
+      var result = await _lessonService.CreateAsync(createDto);
+      return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
   }
 }
